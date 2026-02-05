@@ -1,0 +1,50 @@
+{
+  "name": "allowed-role-definitions",
+  "properties": {
+    "displayName": "Allowed Role Definitions",
+    "description": "This policy defines a allow list of role definitions that can be used in IAM. Optionally provide exempt principal objectIds (users and/or groups) to permit exceptions without generating non-compliance.",
+    "mode": "All",
+    "parameters": {
+      "roleDefinitionIds": {
+        "type": "array",
+        "metadata": {
+          "description": "The list of approved role definition resource IDs that may be assigned (e.g. /providers/Microsoft.Authorization/roleDefinitions/<guid>).",
+          "displayName": "Approved Role Definitions"
+        }
+      },
+      "exemptPrincipalIds": {
+        "type": "array",
+        "defaultValue": [],
+        "metadata": {
+          "description": "Optional list of Microsoft Entra ID objectIds for exempt principals (users and/or groups). If the role assignment principalId is in this list, the assignment is exempt from the allowed role definition list.",
+          "displayName": "Exempt principals (users/groups objectIds)"
+        }
+      }
+    },
+    "policyRule": {
+      "if": {
+        "allOf": [
+          {
+            "field": "type",
+            "equals": "Microsoft.Authorization/roleAssignments"
+          },
+          {
+            "not": {
+              "field": "Microsoft.Authorization/roleAssignments/roleDefinitionId",
+              "in": "[parameters('roleDefinitionIds')]"
+            }
+          },
+          {
+            "not": {
+              "field": "Microsoft.Authorization/roleAssignments/principalId",
+              "in": "[parameters('exemptPrincipalIds')]"
+            }
+          }
+        ]
+      },
+      "then": {
+        "effect": "deny"
+      }
+    }
+  }
+}
