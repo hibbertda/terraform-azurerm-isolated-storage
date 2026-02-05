@@ -29,6 +29,29 @@ This Terraform module creates a secure, isolated Azure Storage Account with priv
 - **Role Based Access Control (RBAC)**: Add users/service principals to these groups to grant access
 - **Network Security Perimeter (NSP)**: NSP is enforced to control inbound/outbound network access
 
+### Azure Policy - Blocked Role Definitions
+The module includes an optional Azure Policy that prevents assignment of specified RBAC roles to the isolated storage resource group. This provides an additional layer of protection against overly permissive role assignments.
+
+**Key features:**
+- **Subscription-scoped assignment**: Policy is assigned at subscription level but targets only the isolated storage resource group
+- **Blocked roles**: By default, blocks direct assignment of storage data plane roles (Owner, Contributor, Reader, Delegator) that bypass the managed Entra ID groups
+- **Exempt principals**: The Entra ID groups created by this module are automatically exempted to allow the module's role assignments to succeed
+- **Customizable**: Override `blocked_role_definition_ids` to block different roles as needed
+
+**Policy variables:**
+
+| Name | Description | Default |
+|------|-------------|---------|
+| `enable_rbac_policy_assignment` | Enable the blocked role definitions policy | `true` |
+| `blocked_role_definition_ids` | List of role definition IDs to block | Storage Blob Data Owner, Contributor, Reader, Delegator |
+
+**How it works:**
+1. Policy evaluates all role assignments targeting the isolated storage resource group
+2. If the role being assigned is in the blocked list, the assignment is denied
+3. Assignments by the module's Entra ID groups are exempted
+
+This ensures all data access is funneled through the managed security groups, providing centralized access control and audit capability.
+
 ### Network Isolation
 - Public network access is disabled on the storage account
 - Storage is only accessible via private endpoint
@@ -111,6 +134,8 @@ module "isolated_storage" {
 | `primary_region` | Azure region for deployment | `string` | Yes |
 | `primary_region_vnet_name` | Name of the primary region VNet to peer with | `string` | Yes |
 | `primary_resource_group` | Resource group containing the primary region VNet | `string` | Yes |
+| `enable_rbac_policy_assignment` | Whether to create the blocked role definitions policy assignment | `bool` | No (default: `true`) |
+| `blocked_role_definition_ids` | List of role definition IDs to block from assignment | `list(string)` | No (default: storage data roles) |
 
 ## Outputs
 
@@ -138,6 +163,8 @@ module "isolated_storage" {
 | `azurerm_network_security_perimeter_association` | NSP association (Enforced mode) |
 | `azuread_group` (x2) | Entra ID security groups for contributor and reader access |
 | `azurerm_role_assignment` (x2) | RBAC role assignments for storage blob access |
+| `azurerm_policy_definition` | Custom policy to block specified role assignments |
+| `azurerm_subscription_policy_assignment` | Policy assignment at subscription scope (optional) |
 
 
 ## Notes

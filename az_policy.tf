@@ -30,6 +30,13 @@ resource "azurerm_policy_definition" "blocked_role_definitions" {
         displayName  = "Exempt principals (users/groups objectIds)"
       }
     }
+    targetResourceGroupNames = {
+      type = "array"
+      metadata = {
+        description  = "The list of target resource group names where the policy will be enforced."
+        displayName  = "Target Resource Group Names"
+      }
+    }
   })
 
   policy_rule = jsonencode({
@@ -38,6 +45,10 @@ resource "azurerm_policy_definition" "blocked_role_definitions" {
         {
           field  = "type"
           equals = "Microsoft.Authorization/roleAssignments"
+        },
+        {
+          value = "[resourceGroup().name]"
+          in = "[parameters('targetResourceGroupNames')]"
         },
         {
           field = "Microsoft.Authorization/roleAssignments/roleDefinitionId"
@@ -58,13 +69,13 @@ resource "azurerm_policy_definition" "blocked_role_definitions" {
 }
 
 #------------------------------------------------------------------------------
-# Policy Assignment (optional - assign to resource group scope)
+# Policy Assignment (subscription scope)
 #------------------------------------------------------------------------------
 
-resource "azurerm_resource_group_policy_assignment" "blocked_role_definitions" {
+resource "azurerm_subscription_policy_assignment" "blocked_role_definitions" {
   count                = var.enable_rbac_policy_assignment ? 1 : 0
   name                 = "blocked-role-definitions-assignment"
-  resource_group_id    = azurerm_resource_group.isolated_storage_rg.id
+  subscription_id      = data.azurerm_subscription.current.id
   policy_definition_id = azurerm_policy_definition.blocked_role_definitions.id
   description          = "Blocks assignment of specified roles on isolated storage resources"
   display_name         = "Blocked Role Definitions Assignment"
@@ -91,5 +102,7 @@ resource "azurerm_resource_group_policy_assignment" "blocked_role_definitions" {
         azuread_group.isolated_storage_owner_access_group.object_id
       ]
     }
+    # Target the isolated storage resource group for policy enforcement
+    targetResourceGroupNames = { value = [azurerm_resource_group.isolated_storage_rg.name] }
   })
 }

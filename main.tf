@@ -15,6 +15,8 @@ data "azurerm_virtual_network" "primary_region_vnet" {
   name                = var.primary_region_vnet_name
   resource_group_name = var.primary_resource_group
 }
+# Current Subscription Data Source (for subscription-scoped policy assignment)
+data "azurerm_subscription" "current" {}
 
 # Resource Group for Isolated Storage
 resource "azurerm_resource_group" "isolated_storage_rg" {
