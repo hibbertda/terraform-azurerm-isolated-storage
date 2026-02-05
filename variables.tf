@@ -37,7 +37,7 @@ variable "resource_tags" {
 variable "enable_rbac_policy_assignment" {
   description = "Whether to create the policy assignment for blocked role definitions"
   type        = bool
-  default     = false
+  default     = true
 }
 
 variable "blocked_role_definition_ids" {
