@@ -64,16 +64,16 @@ resource "azurerm_policy_definition" "blocked_role_definitions" {
 resource "azurerm_resource_group_policy_assignment" "blocked_role_definitions" {
   count                = var.enable_rbac_policy_assignment ? 1 : 0
   name                 = "blocked-role-definitions-assignment"
-  resource_group_id    = data.azurerm_resource_group.isolated_storage.id
+  resource_group_id    = azurerm_resource_group.isolated_storage_rg.id
   policy_definition_id = azurerm_policy_definition.blocked_role_definitions.id
   description          = "Blocks assignment of specified roles on isolated storage resources"
   display_name         = "Blocked Role Definitions Assignment"
 
   depends_on = [ 
     azurerm_storage_account.isolated,
-    azureazuread_group.isolated_storage_access_group,
-    azureazuread_group.isolated_storage_reader_access_group,
-    azureazuread_group.isolated_storage_owner_access_group
+    azuread_group.isolated_storage_access_group,
+    azuread_group.isolated_storage_reader_access_group,
+    azuread_group.isolated_storage_owner_access_group
     ]
 
   parameters = jsonencode({
