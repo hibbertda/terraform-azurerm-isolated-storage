@@ -69,6 +69,10 @@ resource "azurerm_resource_group_policy_assignment" "blocked_role_definitions" {
   description          = "Blocks assignment of specified roles on isolated storage resources"
   display_name         = "Blocked Role Definitions Assignment"
 
+  non_compliance_message {
+    content = "Data access restricted to this resource"
+  }
+
   depends_on = [ 
     azurerm_storage_account.isolated,
     azuread_group.isolated_storage_access_group,
