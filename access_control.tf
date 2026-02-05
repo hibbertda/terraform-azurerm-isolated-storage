@@ -37,6 +37,6 @@ resource "azuread_group" "isolated_storage_owner_access_group" {
 # Assign Storage Account Owner Role to EntraID Group (optional - for full control)
 resource "azurerm_role_assignment" "isolated_storage_account_owner_assignment" {
   scope                = azurerm_storage_account.isolated.id
-  role_definition_name = "Storage Account Owner"
+  role_definition_name = "Storage Blob Data Owner"
   principal_id         = azuread_group.isolated_storage_owner_access_group.object_id
 }
